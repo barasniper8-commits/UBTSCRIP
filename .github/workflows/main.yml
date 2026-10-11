@@ -19,12 +19,13 @@ jobs:
 
     - name: Install XFCE Desktop dan XRDP
       run: |
+        export DEBIAN_FRONTEND=noninteractive
         sudo apt update
         sudo apt install -y xfce4 xfce4-goodies xrdp
         sudo systemctl enable xrdp
         echo "xfce4-session" > ~/.xsession
         sudo sed -i 's/port=3389/port=3389/g' /etc/xrdp/xrdp.ini
-        sudo echo "xfce4-session" > /etc/xrdp/startwm.sh
+        echo "xfce4-session" | sudo tee /etc/xrdp/startwm.sh
         sudo systemctl restart xrdp
 
     - name: Buat User dan Password RDP
