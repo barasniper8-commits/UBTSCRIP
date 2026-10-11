@@ -1,0 +1,59 @@
+name: Ubuntu RDP Tailscale
+
+on:
+  workflow_dispatch:
+    inputs:
+      tailscale_authkey:
+        description: 'Masukkan Tailscale Auth Key (tskey-auth-...)'
+        required: true
+        type: string
+
+jobs:
+  rdp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install XFCE Desktop dan XRDP
+      run: |
+        sudo apt update
+        sudo apt install -y xfce4 xfce4-goodies xrdp
+        sudo systemctl enable xrdp
+        echo "xfce4-session" > ~/.xsession
+        sudo sed -i 's/port=3389/port=3389/g' /etc/xrdp/xrdp.ini
+        sudo echo "xfce4-session" > /etc/xrdp/startwm.sh
+        sudo systemctl restart xrdp
+
+    - name: Buat User dan Password RDP
+      run: |
+        sudo useradd -m -s /bin/bash userdp
+        echo "userdp:password123" | sudo chpasswd
+        sudo usermod -aG sudo userdp
+        echo "=== KREDENSIAL RDP ==="
+        echo "Username: userdp"
+        echo "Password: password123"
+
+    - name: Setup Tailscale
+      uses: tailscale/github-action@v2
+      with:
+        authkey: ${{ github.event.inputs.tailscale_authkey }}
+        args: --hostname=ubuntu-github-rdp
+
+    - name: Tampilkan Informasi Koneksi Tailscale IP
+      run: |
+        echo "=================================================="
+        echo "RDP BERHASIL DIJALANKAN!"
+        echo "IP Tailscale Anda (Gunakan ini di Windows App / RD Client):"
+        tailscale ip -4
+        echo "Port: 3389"
+        echo "Username: userdp"
+        echo "Password: password123"
+        echo "=================================================="
+
+    - name: Keep Runner Alive (Tahan VM agar tetap menyala)
+      run: |
+        echo "VM aktif. Biarkan proses ini berjalan selama Anda menggunakan RDP."
+        sleep 21600
