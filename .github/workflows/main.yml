@@ -21,10 +21,11 @@ jobs:
       run: |
         export DEBIAN_FRONTEND=noninteractive
         sudo apt update
-        sudo apt install -y xfce4 xfce4-goodies xrdp
+        # Menambahkan dbus-x11 untuk mengatasi error dbus-launch permission denied
+        sudo apt install -y xfce4 xfce4-goodies xrdp dbus-x11
         sudo systemctl enable xrdp
         
-        # Memperbaiki konfigurasi startwm.sh agar tidak error failsafe session
+        # Konfigurasi startwm.sh
         sudo tee /etc/xrdp/startwm.sh << 'EOF'
         #!/bin/sh
         if [ -r /etc/default/locale ]; then
